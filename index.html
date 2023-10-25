@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tài Xỉu Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #0074e4;
+        }
+
+        p {
+            font-size: 18px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 400px;
+            color: #fff;
+            height: 150px;
+            background-color: rgba(0, 0, 0); /* Màu xám với độ trong suốt 50% */
+            z-index: 1;}
+        .result {
+            background-color: #00a300;
+            color: #fff;
+            font-weight: bold;
+            display: none;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        #balance, #countdown {
+            font-size: 18px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .bet-button, .play-button {
+            background-color: #ff5733;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            width: 40%;
+        }
+
+        .rolling-number-container {
+            display: none;
+            font-size: 20px;
+        }
+
+        .rolling-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #f00; /* Placeholder color */
+            border-radius: 50%;
+            color: #fff;
+            text-align: center;
+            font-size: 20px;
+            line-height: 30px;
+            margin: 5px;
+            animation: roll 1s linear infinite;
+        }
+
+        /* @keyframes roll {
+            0% { transform: translateY(0); }
+            20% { transform: translateY(-50px); }
+            40% { transform: translateY(-100px); }
+            60% { transform: translateY(-150px); }
+            80% { transform: translateY(-200px); }
+            100% { transform: translateY(-250px); }
+        } */
+
+        @media screen and (max-width: 768px) {
+            .button-container {
+                flex-direction: column;
+            }
+
+            .bet-button, .play-button {
+                width: 80%;
+            }
+        }
+    </style>
+    <script>
+        var balance = 1000; // Số tiền ban đầu
+        var countdown = 10; // Thời gian đếm ngược (s)
+        var betAmount = 100; // Mức cược mặc định
+
+        function updateBalance(amount) {
+            balance += amount;
+            var balanceDisplay = document.getElementById("balance");
+            balanceDisplay.innerHTML = "Số tiền hiện tại: " + balance + " VNĐ";
+        }
+
+        function updateCountdown() {
+            var countdownDisplay = document.getElementById("countdown");
+            countdownDisplay.innerHTML = "Đếm ngược: " + countdown + " giây";
+        }
+
+        function updateRollingNumbers() {
+            var rollingNumbers = document.getElementsByClassName("rolling-number");
+            for (var i = 0; i < rollingNumbers.length; i++) {
+                var randomNumber = Math.floor(Math.random() * 9) + 1;
+                rollingNumbers[i].textContent = randomNumber;
+            }
+        }
+
+        function setBetAmount(amount) {
+            betAmount = amount;
+        }
+
+        function playGame(choice) {
+            var taiDiv = document.getElementById("tai");
+            var xiuDiv = document.getElementById("xiu");
+            var resultDiv = document.getElementById("result");
+            var rollingNumberContainer = document.getElementById("rolling-number-container");
+            var sum = 0;
+
+            if (balance < betAmount) {
+                alert("Số tiền không đủ để cược.");
+                return;
+            }
+
+            var buttons = document.querySelectorAll(".bet-button, .play-button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true;
+            }
+
+            rollingNumberContainer.style.display = "block";
+
+            var countdownInterval = setInterval(function() {
+                countdown--;
+                updateCountdown();
+
+                if (countdown === 0) {
+                    clearInterval(countdownInterval);
+                    clearInterval(rollingNumbersInterval);
+
+                    var randomNumbers = [];
+                    for (var i = 0; i < 3; i++) {
+                        var randomNumber = Math.floor(Math.random() * 9) + 1;
+                        randomNumbers.push(randomNumber);
+                        sum += randomNumber;
+                    }
+
+                    rollingNumberContainer.style.display = "none";
+
+                    var randomOutput = document.getElementById("random-output");
+                    randomOutput.innerHTML = randomNumbers.join(" - ");
+
+                    if (sum > 11) {
+                        taiDiv.style.display = "block";
+                        xiuDiv.style.display = "none";
+                    } else {
+                        taiDiv.style.display = "none";
+                        xiuDiv.style.display = "block";
+                    }
+
+                    var resultText = document.getElementById("result-text");
+                    if ((choice === "tai" && sum > 11) || (choice === "xiu" && sum <= 11)) {
+                        resultText.innerHTML = "Bạn thắng!";
+                        updateBalance(betAmount);
+                    } else {
+                        resultText.innerHTML = "Bạn thua!";
+                        updateBalance(-betAmount);
+                    }
+
+                    resultDiv.style.display = "block";
+
+                    for (var i = 0; i < buttons.length; i++) {
+                        buttons[i].disabled = false;
+                    }
+
+                    countdown = 10;
+                    updateCountdown();
+
+                    setTimeout(function() {
+                        randomOutput.innerHTML = "";
+                    }, 3000); // 3 seconds
+
+                    setTimeout(function() {
+                        resultDiv.style.display = "none";
+                    }, 3000); // 3 seconds
+                }
+            }, 1000);
+
+            var rollingNumbersInterval = setInterval(updateRollingNumbers, 100);
+        }
+    </script>
+</head>
+<body>
+    <h1>Chơi Tài Xỉu</h1>
+    <p>Tên tài khoản: <span id="account-name">25543111 mbank</span></p>
+    <p id="balance">Số tiền hiện tại: 1000 VNĐ</p>
+    <p id="countdown">Đếm ngược: 10 giây</p>
+    
+    <div class="button-container">
+        <button class="bet-button" onclick="setBetAmount(100)">100 VNĐ</button>
+        <button class="bet-button" onclick="setBetAmount(200)">200 VNĐ</button>
+        <button class="bet-button" onclick="setBetAmount(500)">500 VNĐ</button>
+        <button class="bet-button" onclick="setBetAmount(1000)">1,000 VNĐ</button>
+    </div>
+
+    <p>Nạp tiền:</p>
+    <div class="button-container">
+        <input type="number" id="topup-amount" placeholder="Nhập số tiền">
+        <button class="bet-button" onclick="showTopupInfo()">Nạp tiền</button>
+    </div>
+
+    <p>Chọn một lựa chọn:</p>
+    <div class="button-container">
+        <button class="play-button" onclick="playGame('tai')">Chọn Tài</button>
+        <button class="play-button" onclick="playGame('xiu')">Chọn Xỉu</button>
+    </div>
+
+    <div id="tai" class="result">Tài</div>
+    <div id="xiu" class="result">Xỉu</div>
+    
+    <div id="result" class="result">
+        <p id="result-text"></p>
+        Kết quả: <span id="random-output"></span>
+    </div>
+    
+    <div id="rolling-number-container" class="rolling-number-container">
+        <div class="rolling-number">0</div>
+        <div class="rolling-number">0</div>
+        <div class="rolling-number">0</div>
+    </div>
+
+    <!-- Modal for Topup Info (initially hidden) -->
+    <div id="topup-info-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideTopupInfo()">&times;</span>
+            <p>Tên tài khoản: Tran Ngoc Tuyen mbank</p>
+            <p>So tk:25543111</p>
+           
+            <img src="link-to-qr-code.png" alt="Mã QR">
+        </div>
+    </div>
+
+    <script>
+        function showTopupInfo() {
+            var topupAmountInput = document.getElementById("topup-amount");
+            var topupAmount = parseInt(topupAmountInput.value, 10);
+            if (!isNaN(topupAmount) && topupAmount > 0) {
+                updateBalance(topupAmount);
+                topupAmountInput.value = "";
+
+                // Hiển thị modal với thông tin tài khoản và mã QR
+                var topupInfoModal = document.getElementById("topup-info-modal");
+                topupInfoModal.style.display = "block";
+            } else {
+                alert("Vui lòng nhập số tiền hợp lệ.");
+            }
+        }
+
+        function hideTopupInfo() {
+            var topupInfoModal = document.getElementById("topup-info-modal");
+            topupInfoModal.style.display = "none";
+        }
+    </script>
+</body>
+</html>
